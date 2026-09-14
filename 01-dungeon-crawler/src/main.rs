@@ -1,4 +1,5 @@
 use std::io;
+use rand::Rng;
 
 struct Player {
     hp: i32,
@@ -56,7 +57,7 @@ fn main() {
         attack: 1,
     };
 
-    // take input
+    // Take user input
     println!("Enter your move (attack/defend/flee): ");
 
     let mut playerMove = String::new();
@@ -79,5 +80,19 @@ fn main() {
 
     if !monster.is_alive() {
         println!("The monster is dead, you won.");
+    }
+
+
+    // Randomize the monster's move
+
+    // gen number from 0 to 2
+    let randomNum = rand::thread_rng().gen_range(0..=2);
+
+    // monster Move
+    let monsterMove: Action = match randomNum {
+        0 => Action::Attack,
+        1 => Action::Defend,
+        2 => Action::Flee,
+        _ => (),
     }
 }
