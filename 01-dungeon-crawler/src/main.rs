@@ -11,13 +11,13 @@ struct Monster {
     attack: i32,
 }
 
+#[derive(Debug)]
 enum Action {
     Attack,
     Defend,
     Flee,
 }
 
-// Game logic
 impl Player {
     fn is_alive(&self) -> bool {
         self.hp > 0
@@ -29,6 +29,11 @@ impl Player {
 
     fn attack(&self, another: &mut Monster) {
         another.take_damage(&self.attack);
+    }
+
+    fn attack_against_defend(&self, another: &mut Monster) {
+        let reduced_damage: i32 = &self.attack / 2;
+        another.take_damage(&reduced_damage);
     }
 }
 
@@ -44,20 +49,51 @@ impl Monster {
     fn attack(&self, another: &mut Player) {
         another.take_damage(&self.attack);
     }
+
+    fn attack_against_defend(&self, another: &mut Player) {
+        let reduced_damage: i32 = &self.attack / 2;
+        another.take_damage(&reduced_damage);
+    }
+}
+
+// game logic (flee is not implemented yet since it's not straightforward)
+fn playGame(player: &mut Player, monster: &mut Monster, playerMove: &str, monsterMove: Action) {
+    // one round only
+    match (playerMove, monsterMove) {
+        ("attack", Action::Attack) => {
+            // both attack
+            player.attack(monster);
+            monster.attack(player);
+        },
+
+        ("attack", Action::Defend) => {
+            // monster takes half the damage
+            player.attack_against_defend(monster);
+        },
+
+        ("defend", Action::Attack) => {
+            // player takes half the damage
+            monster.attack_against_defend(player);
+        },
+
+        // other cases: (defend, defend) -> nothing
+        _ => println!("Both defend so nothing happens"),
+    }
 }
 
 fn main() {
     let mut player = Player {
-        hp: 2,
-        attack: 1,
+        hp: 10,
+        attack: 4,
     };
 
     let mut monster = Monster {
-        hp: 1,
-        attack: 1,
+        hp: 10,
+        attack: 3,
     };
 
-    // Take user input
+    // TAKE USER INPUT FOR PLAYER'S MOVE
+    
     println!("Enter your move (attack/defend/flee): ");
 
     let mut playerMove = String::new();
@@ -70,29 +106,28 @@ fn main() {
 
     // shadow it without a .trim() to convert to a &str 
     // so it can accept literal string
-
     let playerMove: &str = playerMove.trim();
 
-    match playerMove {
-        "attack" => player.attack(&mut monster),
-        _ => println!("Invalid move."),
-    }
-
-    if !monster.is_alive() {
-        println!("The monster is dead, you won.");
-    }
 
 
-    // Randomize the monster's move
+    // RANDOMIZE MONSTER'S MOVE
 
-    // gen number from 0 to 2
-    let randomNum = rand::thread_rng().gen_range(0..=2);
+    // gen number from 0 to 1 ( should be to 2, but flee is not implemented yet )
+    let randomNum = rand::thread_rng().gen_range(0..=1);
 
     // monster Move
     let monsterMove: Action = match randomNum {
         0 => Action::Attack,
         1 => Action::Defend,
-        2 => Action::Flee,
-        _ => (),
-    }
+        // 2 => Action::Flee, (implement later)
+        _ => unreachable!("monster move must be 0 or 1"),
+    };
+
+    println!("{:?}", monsterMove);
+
+
+    // Test Playing 1 round (play manually)
+    playGame(&mut player, &mut monster, "attack", Action::Defend);
+
+    println!("Monster HP after one round: {}", monster.hp);
 }
