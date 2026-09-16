@@ -73,19 +73,27 @@ fn playGame(player: &mut Player, monster: &mut Monster, playerMove: Action, mons
 
     // if let is just match but only have 1 case and ignore the other cases
     if let Action::Flee = playerMove {
-        // generate true, fasle randomly (coin flip)
 
-        // if true then can dodge
-        if rand::thread_rng().gen_bool(0.5) {
-            println!("You dodged its attack.");
-        }
-
-        // otherwise, flee does not have any use
-        // so if monster attacks, player will take damage
-        println!("You failed to dodge.");
+        // Flee only works if the monster is attacked
         if let Action::Attack = monsterMove {
+            // generate true, fasle randomly (coin flip)
+
+            // if true then can dodge
+            if rand::thread_rng().gen_bool(0.5) {
+                println!("You dodged its attack.");
+                return; //end round
+            }
+
+            // otherwise, flee does not have any use
+            // so if monster attacks, player will take damage
+            println!("You failed to dodge.");
             monster.attack(player);
-        }
+            return; //end round
+        } 
+
+        // otherwise
+        println!("Flee against Defend so nothing happened, continue.");
+        return; //end round
     }
 
 
@@ -94,22 +102,29 @@ fn playGame(player: &mut Player, monster: &mut Monster, playerMove: Action, mons
         (Action::Attack, Action::Attack) => {
             // both attack
             player.attack(monster);
+            println!("Player attacked monster.");
+
             monster.attack(player);
+            println!("Monster attacked player.");
         },
 
         (Action::Attack, Action::Defend) => {
             // monster takes half the damage
             player.attack_against_defend(monster);
+            println!("Player attacked monster, but monster defended so monster take reduced damage");
         },
 
         (Action::Defend, Action::Attack) => {
             // player takes half the damage
             monster.attack_against_defend(player);
+                        println!("Monster attacked player, but player defended so player take reduced damage");
         },
 
         // other cases: (defend, defend) -> nothing
         _ => println!("Both defend so nothing happens"),
     }
+
+    return; //end round if reaches here
 }
 
 fn main() {
@@ -133,7 +148,7 @@ fn main() {
         .read_line(&mut playerMove)
         .expect("failed to read line");
     
-    println!("You played a {} move", playerMove);
+    // println!("You played a {} move", playerMove);
 
     // shadow it without a .trim() to convert to a &str 
     // so it can accept literal string
@@ -154,11 +169,11 @@ fn main() {
         Action::Defend
     };
 
-    println!("{:?}", monsterMove);
+    // println!("{:?}", monsterMove);
 
+    playGame(&mut player, &mut monster, playerMove, monsterMove);
 
-    // Test Playing 1 round (play manually)
-    playGame(&mut player, &mut monster, playerMove, Action::Defend);
-
-    println!("Monster HP after one round: {}", monster.hp);
+    // test
+    println!("{}", player.hp);
+    println!("{}", monster.hp);
 }
