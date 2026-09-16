@@ -178,9 +178,14 @@ fn main() {
         // shadow it without a .trim() to convert to a &str 
         // so it can accept literal string
 
-        // then convert to an Action (w/o expect, it would be type Option<Action> not Action)
-        let player_move: Action = parse_player_move(player_move.trim())
-                                    .expect("invalid move, type attack/defend/flee");
+        // then convert to an Action; invalid input re-prompts instead of crashing
+        let player_move: Action = match parse_player_move(player_move.trim()) {
+            Some(action) => action,
+            None => {
+                println!("Invalid move, type attack/defend/flee.");
+                continue;
+            }
+        };
 
         // RANDOMIZE MONSTER'S MOVE
 
