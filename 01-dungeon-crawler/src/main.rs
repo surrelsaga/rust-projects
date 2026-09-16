@@ -1,6 +1,8 @@
 use std::io;
 use rand::Rng;
 
+use std::{thread, time::Duration}; // to delay time
+
 struct Player {
     hp: i32,
     attack: i32,
@@ -56,8 +58,8 @@ impl Monster {
     }
 }
 
-fn parse_player_move(playerMove: &str) -> Option<Action> {
-    match playerMove {
+fn parse_player_move(player_move: &str) -> Option<Action> {
+    match player_move {
         "attack" => Some(Action::Attack),
         "defend" => Some(Action::Defend),
         "flee" => Some(Action::Flee),
@@ -65,22 +67,32 @@ fn parse_player_move(playerMove: &str) -> Option<Action> {
     }
 }
 
+// random function to clear terminal (w/o using external crate)
+fn clear_terminal() {
+    // \x1B[2J clears the screen
+    // \x1B[1;1H moves the cursor to the top-left corner
+    print!("{}[2J{}[1;1H", 27 as char, 27 as char);
+    
+    // Alternatively, using standard escape syntax:
+    // print!("\x1B[2J\x1B[1;1H");
+}
+
 // game logic (flee is not implemented yet since it's not straightforward)
-fn playGame(player: &mut Player, monster: &mut Monster, playerMove: Action, monsterMove: Action) {
+fn play_game(player: &mut Player, monster: &mut Monster, player_move: Action, monster_move: Action) {
     // one round only
 
     // Only player can flee (dodge)
 
     // if let is just match but only have 1 case and ignore the other cases
-    if let Action::Flee = playerMove {
+    if let Action::Flee = player_move {
 
         // Flee only works if the monster is attacked
-        if let Action::Attack = monsterMove {
+        if let Action::Attack = monster_move {
             // generate true, fasle randomly (coin flip)
 
             // if true then can dodge
             if rand::thread_rng().gen_bool(0.5) {
-                println!("You dodged its attack.");
+                println!("You dodged the monster's attack.");
                 return; //end round
             }
 
@@ -98,30 +110,30 @@ fn playGame(player: &mut Player, monster: &mut Monster, playerMove: Action, mons
 
 
     // handle only Attack and Defend here
-    match (playerMove, monsterMove) {
+    match (player_move, monster_move) {
         (Action::Attack, Action::Attack) => {
             // both attack
             player.attack(monster);
-            println!("Player attacked monster.");
+            println!("You attacked monster.");
 
             monster.attack(player);
-            println!("Monster attacked player.");
+            println!("Monster attacked you.");
         },
 
         (Action::Attack, Action::Defend) => {
             // monster takes half the damage
             player.attack_against_defend(monster);
-            println!("Player attacked monster, but monster defended so monster take reduced damage");
+            println!("You attacked monster, but monster defended so monster take reduced damage.");
         },
 
         (Action::Defend, Action::Attack) => {
             // player takes half the damage
             monster.attack_against_defend(player);
-                        println!("Monster attacked player, but player defended so player take reduced damage");
+                        println!("Monster attacked you, but you defended so you take reduced damage.");
         },
 
         // other cases: (defend, defend) -> nothing
-        _ => println!("Both defend so nothing happens"),
+        _ => println!("Both defend so nothing happens."),
     }
 
     return; //end round if reaches here
@@ -138,42 +150,67 @@ fn main() {
         attack: 3,
     };
 
-    // TAKE USER INPUT FOR PLAYER'S MOVE
+    // println! macro never take ownership of its arguments
+    println!("User starts with {} hp and deals {} dmg per attack.", player.hp, player.attack);
+    println!("Monster starts with {} hp and deals {} dmg per attack.", monster.hp, monster.attack);
 
-    println!("Enter your move (attack/defend/flee): ");
+    thread::sleep(Duration::from_secs(3)); // delay 3 seconds before clearing
+    clear_terminal();
 
-    let mut playerMove = String::new();
+    while player.is_alive() && monster.is_alive() {
+        // print out remaining hp of both player and monster
+        println!("User has {} hp left.", player.hp);
+        println!("Monster has {} hp left.", monster.hp);
 
-    io::stdin()
-        .read_line(&mut playerMove)
-        .expect("failed to read line");
-    
-    // println!("You played a {} move", playerMove);
 
-    // shadow it without a .trim() to convert to a &str 
-    // so it can accept literal string
+        // TAKE USER INPUT FOR PLAYER'S MOVE
 
-    // then convert to an Action (w/o expect, it would be type Option<Action> not Action)
-    let playerMove: Action = parse_player_move(playerMove.trim())
-                                .expect("invalid move, type attack/defend/flee");
+        println!("Enter your move (attack/defend/flee): ");
 
-    // RANDOMIZE MONSTER'S MOVE
+        let mut player_move = String::new();
 
-    // gen number from 0 to 1
-    let randomNum = rand::thread_rng().gen_range(0..=1);
+        io::stdin()
+            .read_line(&mut player_move)
+            .expect("failed to read line");
+        
+        // println!("You played a {} move", player_move);
 
-    // monster Move (monster dont know how to dodge)
-    let monsterMove: Action = if randomNum == 0 {
-        Action::Attack
+        // shadow it without a .trim() to convert to a &str 
+        // so it can accept literal string
+
+        // then convert to an Action (w/o expect, it would be type Option<Action> not Action)
+        let player_move: Action = parse_player_move(player_move.trim())
+                                    .expect("invalid move, type attack/defend/flee");
+
+        // RANDOMIZE MONSTER'S MOVE
+
+        // gen number from 0 to 1
+        let random_num = rand::thread_rng().gen_range(0..=1);
+
+        // monster Move (monster dont know how to dodge)
+        let monster_move: Action = if random_num == 0 {
+            Action::Attack
+        } else {
+            Action::Defend
+        };
+
+        // println!("{:?}", monster_move);
+
+        play_game(&mut player, &mut monster, player_move, monster_move);
+
+        thread::sleep(Duration::from_secs(3)); 
+        // clear terminal
+        clear_terminal();
+    }
+
+    // if else to assign so it's exhaustive
+    let winner = if !player.is_alive() && !monster.is_alive() {
+        "Draw! You both lose."
+    } else if !player.is_alive() {
+        "Monster wins!"
     } else {
-        Action::Defend
+        "Player wins!"
     };
 
-    // println!("{:?}", monsterMove);
-
-    playGame(&mut player, &mut monster, playerMove, monsterMove);
-
-    // test
-    println!("{}", player.hp);
-    println!("{}", monster.hp);
+    println!("{}", winner);
 }
