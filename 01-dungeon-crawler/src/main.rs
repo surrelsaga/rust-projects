@@ -13,12 +13,11 @@ struct Monster {
     attack: i32,
 }
 
-#[derive(Debug)]
-enum Action {
-    Attack,
-    Defend,
-    Flee,
-}
+mod action;
+
+// get types of action fast
+use action::Action;
+use Action::{Attack, Defend, Flee};
 
 impl Player {
     fn is_alive(&self) -> bool {
@@ -58,15 +57,6 @@ impl Monster {
     }
 }
 
-fn parse_player_move(player_move: &str) -> Option<Action> {
-    match player_move {
-        "attack" => Some(Action::Attack),
-        "defend" => Some(Action::Defend),
-        "flee" => Some(Action::Flee),
-        _ => None,
-    }
-}
-
 // random function to clear terminal (w/o using external crate)
 fn clear_terminal() {
     // \x1B[2J clears the screen
@@ -84,10 +74,10 @@ fn play_game(player: &mut Player, monster: &mut Monster, player_move: Action, mo
     // Only player can flee (dodge)
 
     // if let is just match but only have 1 case and ignore the other cases
-    if let Action::Flee = player_move {
+    if let Flee = player_move {
 
         // Flee only works if the monster is attacked
-        if let Action::Attack = monster_move {
+        if let Attack = monster_move {
             // generate true, fasle randomly (coin flip)
 
             // if true then can dodge
@@ -98,7 +88,7 @@ fn play_game(player: &mut Player, monster: &mut Monster, player_move: Action, mo
 
             // otherwise, flee does not have any use
             // so if monster attacks, player will take damage
-            println!("You failed to dodge.");
+            println!("You failed to dodge, and received full dmg from the monster.");
             monster.attack(player);
             return; //end round
         } 
@@ -111,7 +101,7 @@ fn play_game(player: &mut Player, monster: &mut Monster, player_move: Action, mo
 
     // handle only Attack and Defend here
     match (player_move, monster_move) {
-        (Action::Attack, Action::Attack) => {
+        (Attack, Attack) => {
             // both attack
             player.attack(monster);
             println!("You attacked monster.");
@@ -120,13 +110,13 @@ fn play_game(player: &mut Player, monster: &mut Monster, player_move: Action, mo
             println!("Monster attacked you.");
         },
 
-        (Action::Attack, Action::Defend) => {
+        (Attack, Defend) => {
             // monster takes half the damage
             player.attack_against_defend(monster);
             println!("You attacked monster, but monster defended so monster take reduced damage.");
         },
 
-        (Action::Defend, Action::Attack) => {
+        (Defend, Attack) => {
             // player takes half the damage
             monster.attack_against_defend(player);
                         println!("Monster attacked you, but you defended so you take reduced damage.");
@@ -158,22 +148,8 @@ fn read_player_move() -> Option<Action> {
 
     // depends on user input, convert to an Action
     // also add Option<T> since the user input might not be valid so player_move can be absent
-    parse_player_move(&player_move)
+    action::parse_player_move(&player_move)
 
-}
-
-fn random_monster_move() -> Action {
-    // RANDOMIZE MONSTER'S MOVE
-
-    // gen number from 0 to 1
-    let random_num = rand::thread_rng().gen_range(0..=1);
-
-    // monster Move (monster doesn't know how to dodge)
-    if random_num == 0 {
-        Action::Attack
-    } else {
-        Action::Defend
-    }
 }
 
 fn print_hp(player: &Player, monster: &Monster) {
@@ -228,7 +204,7 @@ fn main() {
         };
 
         // get monster move (attack or defend)
-        let monster_move: Action = random_monster_move();
+        let monster_move: Action = action::random_monster_move();
 
         // println!("{:?}", monster_move);
 
