@@ -1,7 +1,4 @@
-use std::io;
 use rand::Rng;
-
-use std::{thread, time::Duration}; // to delay time
 
 mod player;
 mod monster;
@@ -14,15 +11,8 @@ mod action;
 use action::Action;
 use Action::{Attack, Defend, Flee};
 
-// random function to clear terminal (w/o using external crate)
-fn clear_terminal() {
-    // \x1B[2J clears the screen
-    // \x1B[1;1H moves the cursor to the top-left corner
-    print!("{}[2J{}[1;1H", 27 as char, 27 as char);
-    
-    // Alternatively, using standard escape syntax:
-    // print!("\x1B[2J\x1B[1;1H");
-}
+// import some methods to print in terminal
+mod ui;
 
 // game logic (flee is not implemented yet since it's not straightforward)
 fn play_game(player: &mut Player, monster: &mut Monster, player_move: Action, monster_move: Action) {
@@ -86,43 +76,6 @@ fn play_game(player: &mut Player, monster: &mut Monster, player_move: Action, mo
     return; //end round if reaches here
 }
 
-fn read_player_input() -> String {
-    // TAKE USER INPUT FOR PLAYER'S MOVE
-
-    println!("Enter your move (attack/defend/flee): ");
-
-    let mut player_move = String::new();
-
-    io::stdin()
-        .read_line(&mut player_move)
-        .expect("failed to read line");
-
-    // shadow it without a .trim() to convert to a &str 
-    // so it can accept literal string
-    player_move.trim().to_string()
-}
-
-fn print_hp(player: &Player, monster: &Monster) {
-    // print out remaining hp of both player and monster
-    println!("User has {} hp left.", player.hp);
-    println!("Monster has {} hp left.", monster.hp);
-}
-
-fn print_winner(player: &Player, monster: &Monster) {
-    if !player.is_alive() && !monster.is_alive() {
-        println!("Draw! You both lose.");
-    } else if !player.is_alive() {
-        println!("Monster wins!");
-    } else {
-        println!("Player wins!");
-    };
-}
-
-fn pause_and_clear() {
-    thread::sleep(Duration::from_secs(2)); // delay 2 seconds before clearing
-    clear_terminal();
-}
-
 fn main() {
     let mut player = Player {
         hp: 10,
@@ -138,15 +91,15 @@ fn main() {
     println!("User starts with {} hp and deals {} dmg per attack.", player.hp, player.attack);
     println!("Monster starts with {} hp and deals {} dmg per attack.", monster.hp, monster.attack);
 
-    pause_and_clear();
+    ui::pause_and_clear();
 
     while player.is_alive() && monster.is_alive() {
         // print hp of player and monster
-        print_hp(&player, &monster);
+        ui::print_hp(&player, &monster);
 
         // get player move
         // depends on user input, convert to an Action
-        let player_move: Action = match action::parse_player_move(&read_player_input()) {
+        let player_move: Action = match action::parse_player_move(&ui::read_player_input()) {
             Some(action) => action,
             None => {
                 println!("Invalid move, type attack/defend/flee.");
@@ -157,15 +110,13 @@ fn main() {
         // get monster move (attack or defend)
         let monster_move: Action = action::random_monster_move();
 
-        // println!("{:?}", monster_move);
-
         // start round
         play_game(&mut player, &mut monster, player_move, monster_move);
 
         // end round, wait and clear terminal
-        pause_and_clear();
+        ui::pause_and_clear();
     }
 
     // print the winner
-    print_winner(&player, &monster);
+    ui::print_winner(&player, &monster);
 }
