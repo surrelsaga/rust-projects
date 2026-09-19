@@ -129,7 +129,7 @@ fn play_game(player: &mut Player, monster: &mut Monster, player_move: Action, mo
     return; //end round if reaches here
 }
 
-fn read_player_move() -> Option<Action> {
+fn read_player_input() -> String {
     // TAKE USER INPUT FOR PLAYER'S MOVE
 
     println!("Enter your move (attack/defend/flee): ");
@@ -139,17 +139,10 @@ fn read_player_move() -> Option<Action> {
     io::stdin()
         .read_line(&mut player_move)
         .expect("failed to read line");
-    
-    // println!("You played a {} move", player_move);
 
     // shadow it without a .trim() to convert to a &str 
     // so it can accept literal string
-    let player_move = player_move.trim();
-
-    // depends on user input, convert to an Action
-    // also add Option<T> since the user input might not be valid so player_move can be absent
-    action::parse_player_move(&player_move)
-
+    player_move.trim().to_string()
 }
 
 fn print_hp(player: &Player, monster: &Monster) {
@@ -195,7 +188,8 @@ fn main() {
         print_hp(&player, &monster);
 
         // get player move
-        let player_move: Action = match read_player_move() {
+        // depends on user input, convert to an Action
+        let player_move: Action = match action::parse_player_move(&read_player_input()) {
             Some(action) => action,
             None => {
                 println!("Invalid move, type attack/defend/flee.");
