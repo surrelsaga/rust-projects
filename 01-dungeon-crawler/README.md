@@ -1,24 +1,20 @@
-# 01 — Text Adventure / Combat Sim
+# 01. Combat simulator
 
 **Start after:** Rust Book ch. 7 (you already have everything you need)
 **Concepts exercised:** structs, enums, `match`, ownership, control flow, stdin input
 
-## Pitch
+## Abstract idea
 A tiny dungeon crawler. `Player` and `Monster` structs hold HP/stats, an
 `Action` enum (`Attack`, `Defend`, `Flee`) drives a turn loop, `match`
 resolves combat outcomes. Read player choices from stdin each turn.
 
-## Why it's fun
-First checkpoint where "concepts I just learned" turns into "a thing that
-reacts to what I type." Win/lose states are immediate and visible.
-
-## Suggested shape
+## Entity shape
 - `struct Player { hp: i32, attack: i32, ... }`, same for `Monster`
 - `enum Action { Attack, Defend, Flee }`
 - Game loop: print state → read action → `match` → apply damage → check win/lose
 - Multiple monster types (just different struct instances / a small `Vec<Monster>` roster)
 
-## Game loop (confirmed)
+## Game loop
 1. Print player HP and monster HP.
 2. Player picks an action from stdin (`attack` / `defend` / `flee`).
 3. Monster's action is chosen randomly each turn (needs the `rand` crate —
@@ -41,3 +37,11 @@ reacts to what I type." Win/lose states are immediate and visible.
 ## Later revisit
 Project 07 extends this into a multiplayer server once you've covered
 concurrency and the book's web server chapter.
+
+## Project structure
+crate        // main.rs
+├── player   // mod to contain player stats, mechanics
+├── monster  // mod to contain monster stats, mechanics
+├── action   // mod to contain stuffs about action, building player/monster move
+├── ui       // mod to bring some methods to print gameplay msg in terminal
+└── game     // mod to store one round gameplay logic
