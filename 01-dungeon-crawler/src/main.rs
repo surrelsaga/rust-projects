@@ -3,59 +3,16 @@ use rand::Rng;
 
 use std::{thread, time::Duration}; // to delay time
 
-struct Player {
-    hp: i32,
-    attack: i32,
-}
-
-struct Monster {
-    hp: i32,
-    attack: i32,
-}
+mod player;
+mod monster;
+// import Player and Monster types
+use player::Player;
+use monster::Monster;
 
 mod action;
-
 // get types of action fast
 use action::Action;
 use Action::{Attack, Defend, Flee};
-
-impl Player {
-    fn is_alive(&self) -> bool {
-        self.hp > 0
-    }
-
-    fn take_damage(&mut self, dmg: &i32) {
-        self.hp -= dmg;
-    }
-
-    fn attack(&self, another: &mut Monster) {
-        another.take_damage(&self.attack);
-    }
-
-    fn attack_against_defend(&self, another: &mut Monster) {
-        let reduced_damage: i32 = &self.attack / 2;
-        another.take_damage(&reduced_damage);
-    }
-}
-
-impl Monster {
-    fn is_alive(&self) -> bool {
-        self.hp > 0
-    }
-
-    fn take_damage(&mut self, dmg: &i32) {
-        self.hp -= dmg;
-    }
-
-    fn attack(&self, another: &mut Player) {
-        another.take_damage(&self.attack);
-    }
-
-    fn attack_against_defend(&self, another: &mut Player) {
-        let reduced_damage: i32 = &self.attack / 2;
-        another.take_damage(&reduced_damage);
-    }
-}
 
 // random function to clear terminal (w/o using external crate)
 fn clear_terminal() {
