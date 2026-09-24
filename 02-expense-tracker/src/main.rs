@@ -46,6 +46,38 @@ fn parse_fields_from_row(raw_fields: Vec<&str>) -> Result<Expense, String> {
     Ok(returnExpense)
 }
 
+// dropping the content is fine since it's no longer needed
+fn build_expenses_from_csv(csv_contents: String) -> Vec<Expense> {
+    let mut expenses: Vec<Expense> = Vec::new();
+
+    for (index, row) in csv_contents.split("\n").enumerate() {
+        // first line only contains categories so skip
+        if index == 0 {
+            continue;
+        }
+
+        // signal executing parsing code
+        // user only see the output so index matches with the line number
+        println!("Parsing line {}...", index);
+
+        // create a vector of &str
+        let raw_fields: Vec<&str> = row.split(",").collect();
+
+        // handle parsing errors
+        match parse_fields_from_row(raw_fields) {
+            Ok(expense) => {
+                println!("Parsed successfully.");
+                expenses.push(expense);
+            },
+            Err(reason) => {
+                println!("Parsing failed, reason: {}", reason);
+            },
+        }
+    }
+
+    expenses
+}
+
 // build a hashmap to store the total amount paied for each category
 fn build_total_amount(expenses: &[Expense]) -> HashMap<&String, f64> {
     let mut category_to_amount = HashMap::new();
@@ -71,7 +103,7 @@ fn print_report(expenses_map: &HashMap<&String, f64>) {
 fn main() {
 
     // read from csv (panic - stops the program immediate if file not exist)
-    let contents = read_content_from_file("expenses.csv")
+    let contents: String = read_content_from_file("expenses.csv")
                                 .expect("could not read expenses.csv");
     println!("Loaded file successfully");
 
@@ -83,37 +115,7 @@ fn main() {
     // let firstline: &str = contents.split('\n').next().unwrap();
     // println!("{firstline}");
 
-    let mut expenses: Vec<Expense> = Vec::new();
-
-    for (index, row) in contents.split("\n").enumerate() {
-        // first line only contains categories so skip
-        if index == 0 {
-            continue;
-        }
-
-        // signal executing parsing code
-        // user only see the output so index matches with the line number
-        println!("Parsing line {}...", index);
-
-        // create a vector of &str
-        let raw_fields: Vec<&str> = row.split(",").collect();
-
-        // handle parsing errors
-        match parse_fields_from_row(raw_fields) {
-            Ok(expense) => {
-                println!("Parsed successfully.");
-                expenses.push(expense);
-            },
-            Err(reason) => {
-                println!("Parsing failed, reason: {}", reason);
-            },
-        }
-    }
-
-    // println!("{:?}", expenses);
-
+    let mut expenses: Vec<Expense> = build_expenses_from_csv(contents);
     let mut category_to_amount = build_total_amount(&expenses);
-    // println!("{:?}", category_to_amount);
-
     print_report(&category_to_amount);
 }
