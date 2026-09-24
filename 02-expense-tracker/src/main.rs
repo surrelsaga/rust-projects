@@ -2,6 +2,8 @@ use std::fs::File;
 use std::io::{self, Read};
 use std::collections::HashMap;
 
+mod ui;
+
 #[derive(Debug)]
 struct Expense {
     date: String,
@@ -115,7 +117,11 @@ fn main() {
     // let firstline: &str = contents.split('\n').next().unwrap();
     // println!("{firstline}");
 
-    let mut expenses: Vec<Expense> = build_expenses_from_csv(contents);
-    let mut category_to_amount = build_total_amount(&expenses);
+    let expenses: Vec<Expense> = build_expenses_from_csv(contents);
+    println!("Parsing completed.");
+
+    let category_to_amount = build_total_amount(&expenses);
+
+    ui::pause_and_clear();
     print_report(&category_to_amount);
 }
