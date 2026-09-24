@@ -60,6 +60,14 @@ fn build_total_amount(expenses: &[Expense]) -> HashMap<&String, f64> {
     category_to_amount
 }
 
+fn print_report(expenses_map: &HashMap<&String, f64>) {
+    println!("Expense report here\n ---------------");
+    // printing final result to the users
+    for (category, total_amount) in expenses_map {
+        println!("{category}: ${total_amount}");
+    }
+}
+
 fn main() {
 
     // read from csv (panic - stops the program immediate if file not exist)
@@ -105,5 +113,7 @@ fn main() {
     // println!("{:?}", expenses);
 
     let mut category_to_amount = build_total_amount(&expenses);
-    println!("{:?}", category_to_amount);
+    // println!("{:?}", category_to_amount);
+
+    print_report(&category_to_amount);
 }
