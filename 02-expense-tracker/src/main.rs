@@ -103,9 +103,14 @@ fn print_report(expenses_map: &HashMap<&String, f64>) {
 }
 
 fn main() {
+    use std::env;
+
+    // csv file will be loaded into the program during cargo run
+    // cargo run -- data/plain.csv (e.g)
+    let file_path: String = env::args().nth(1).expect("To load csv, use: cargo run -- <file.csv>");
 
     // read from csv (panic - stops the program immediate if file not exist)
-    let contents: String = read_content_from_file("expenses.csv")
+    let contents: String = read_content_from_file(&file_path)
                                 .expect("could not read expenses.csv");
     println!("Loaded file successfully");
 
