@@ -53,3 +53,12 @@ printline if reading file succeeded
 -> in source code, must add `""` so compiler knows where does the string start and end but in the case to parse from a string to number (e.g: taking from input), quotes cannot be included
 
 -> solution: `.trim_matches(pattern)`, this will remove leadind/trailing characters `pattern`
+
+## Structure
+
+src/
+  main.rs      // wiring only: args → load → build → report
+  expense.rs   // struct Expense
+  loader.rs    // read_content_from_file, parse_fields_from_row, build_expenses_from_csv
+  report.rs    // build_total_amount
+  ui.rs        // pause_and_clear (already there) + print_report

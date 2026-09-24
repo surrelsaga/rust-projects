@@ -1,4 +1,5 @@
 use std::{thread, time::Duration}; // to delay time
+use std::collections::HashMap;
 
 fn clear_terminal() {
     // \x1B[2J clears the screen
@@ -12,4 +13,12 @@ fn clear_terminal() {
 pub fn pause_and_clear() {
     thread::sleep(Duration::from_secs(2)); // delay 2 seconds before clearing
     clear_terminal();
+}
+
+pub fn print_report(expenses_map: &HashMap<&String, f64>) {
+    println!("Expense report here\n ---------------");
+    // printing final result to the users
+    for (category, total_amount) in expenses_map {
+        println!("{category}: ${total_amount}");
+    }
 }
