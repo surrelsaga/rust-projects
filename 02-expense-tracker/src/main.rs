@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::io::{self, Read};
+use std::collections::HashMap;
 
 #[derive(Debug)]
 struct Expense {
@@ -43,10 +44,24 @@ fn parse_fields_from_row(raw_fields: Vec<&str>) -> Result<Expense, String> {
 
     // only the value from the LAST expression in the function will be returned, so need to add 'return' to the Err above
     Ok(returnExpense)
+}
 
+// build a hashmap to store the total amount paied for each category
+fn build_total_amount(expenses: &[Expense]) -> HashMap<&String, f64> {
+    let mut category_to_amount = HashMap::new();
+
+    for expense in expenses {
+        let category: &String = &expense.category;
+        let total_amount = category_to_amount.entry(category).or_insert(0.0);
+
+        *total_amount += expense.amount;
+    }
+
+    category_to_amount
 }
 
 fn main() {
+
     // read from csv (panic - stops the program immediate if file not exist)
     let contents = read_content_from_file("expenses.csv")
                                 .expect("could not read expenses.csv");
@@ -87,5 +102,8 @@ fn main() {
         }
     }
 
-    println!("{:?}", expenses);
+    // println!("{:?}", expenses);
+
+    let mut category_to_amount = build_total_amount(&expenses);
+    println!("{:?}", category_to_amount);
 }
